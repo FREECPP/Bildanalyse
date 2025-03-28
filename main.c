@@ -7,6 +7,22 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
+void linear_scaling(size_t img_size, unsigned char* data,int channels) {
+    unsigned char* high_contrast = (unsigned char*)malloc(img_size);
+    if (high_contrast == NULL) {
+        printf("Es konnte kein Speicher für high_contrast allokiert werden");
+        exit(1);
+    }
+
+    for (unsigned char* p = data; *p != *data + img_size; p+= channels) {
+
+    }
+
+
+    free(high_contrast); // Speicher wird wieder freigegeben
+    high_contrast = NULL; // Pointer wird wieder auf NULL gesetzt
+}
+
 int main(void) {
     printf("Hello, World!\n");
     int width, height, channels;
@@ -27,7 +43,7 @@ int main(void) {
         printf("Unable to allocate memory for the gray image\n");
         exit(1);
     }
-
+    //mache das Bild schwarz weiß
     for (unsigned char *p = data, *pg = gray_img;p != data + img_size; p += channels, pg += gray_channels) {
         *pg = (u_int8_t)((*p + *(p + 1) + *(p + 2))/ 3.0);
         if (channels ==4) {
@@ -38,5 +54,6 @@ int main(void) {
 
 
     free(gray_img);
+    gray_img = NULL;
     return 0;
 }
