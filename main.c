@@ -13,9 +13,24 @@ void linear_scaling(size_t img_size, unsigned char* data,int channels) {
         printf("Es konnte kein Speicher für high_contrast allokiert werden");
         exit(1);
     }
-
+    u_int8_t smallest_brightness = 255, highest_brightness = 0;
+    unsigned char *ptr_brightest_pxl, *ptr_darkest_pixl; //Biedermansche ungereimtheit != unsigned char* ptr_brightest_pxl, ptr_darkest_pixl;
     for (unsigned char* p = data; *p != *data + img_size; p+= channels) {
-
+        u_int8_t brightness = (u_int8_t)0.299 * *p + 0.587 * *(p + 1) + 0.114 * *(p +2);
+        if (brightness > highest_brightness) {
+            highest_brightness = brightness;
+            ptr_brightest_pxl  = p;
+        }
+        if (brightness < smallest_brightness) {
+            smallest_brightness = brightness;
+            ptr_darkest_pixl = p;
+        }
+    }
+    //Für neuen speicherbereich machen - noch falsch
+    for (unsigned char* p = data; p !=  data + img_size; p += channels) {
+        *p =(*p - *ptr_darkest_pixl) / (*ptr_brightest_pxl - *ptr_darkest_pixl) * 255;
+        *(p+1) =(*(p+1) - *ptr_darkest_pixl) / (*ptr_brightest_pxl - *ptr_darkest_pixl) * 255;
+        *(p+2) =(*(p+2) - *ptr_darkest_pixl) / (*ptr_brightest_pxl - *ptr_darkest_pixl) * 255;
     }
 
 
