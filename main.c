@@ -7,10 +7,12 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
-unsigned char* linear_scaling( unsigned char* high_contrast,size_t img_size, unsigned char* data,int channels) {
+void linear_scaling( unsigned char* high_contrast,size_t img_size, unsigned char* data,int channels) {
+    printf("Hallo ich bin die Funktion und werde ausgeführt\n");
 
     u_int8_t smallest_brightness = 255, highest_brightness = 0;
-    unsigned char *ptr_brightest_pxl = NULL, *ptr_darkest_pixl = NULL; //Biedermansche ungereimtheit != unsigned char* ptr_brightest_pxl, ptr_darkest_pixl;
+    unsigned char *ptr_brightest_pxl = NULL, *ptr_darkest_pixl = NULL;
+
     for (unsigned char* p = data; *p != *data + img_size; p+= channels) {
         u_int8_t brightness = (u_int8_t)0.299 * *p + 0.587 * *(p + 1) + 0.114 * *(p +2);
         if (brightness > highest_brightness) {
@@ -26,13 +28,16 @@ unsigned char* linear_scaling( unsigned char* high_contrast,size_t img_size, uns
         printf("Es wurde weder ein hellster Pixel noch ein dunkelster Pixel gefunden\n");
         exit(1);
     }
-    for (unsigned char* p = high_contrast; p !=  high_contrast + img_size; p += channels) {
+    else {
+        printf("Es wurde ein hellster Pixel unter %p und ein dunkelster unter %p gefunden\n", ptr_brightest_pxl, ptr_darkest_pixl);
+    }
+    for (unsigned char* p = high_contrast; *p !=  *high_contrast + img_size; p += channels) {
         *p =(*p - *ptr_darkest_pixl) / (*ptr_brightest_pxl - *ptr_darkest_pixl) * 255;
         *(p+1) =(*(p+1) - *ptr_darkest_pixl) / (*ptr_brightest_pxl - *ptr_darkest_pixl) * 255;
         *(p+2) =(*(p+2) - *ptr_darkest_pixl) / (*ptr_brightest_pxl - *ptr_darkest_pixl) * 255;
     }
 
-    return high_contrast;
+
 
 }
 
@@ -62,9 +67,12 @@ int main(void) {
         printf("Es konnte kein Speicher für high_contrast allokiert werden\n");
         exit(1);
     }
+    else {
+        printf("Es wurde Speicher für high_contrast unter %p allokiert\n", high_contrast);
+    }
     //erhöhe den Kontrast
-    unsigned char *high_contrast_return = linear_scaling(high_contrast,img_size,data,channels);
-    stbi_write_jpg("/Users/felixrehm/CLionProjects/Bildanalyse/high_contrast.jpg", width,height,channels,high_contrast_return,100);
+    linear_scaling(high_contrast,img_size,data,channels);
+    stbi_write_jpg("/Users/felixrehm/CLionProjects/Bildanalyse/high_contrast.jpg", width,height,channels,high_contrast,100);
 /*
     //mache das Bild schwarz weiß
     for (unsigned char *p = data, *pg = gray_img;p != data + img_size; p += channels, pg += gray_channels) {
