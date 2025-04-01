@@ -46,14 +46,72 @@ void linear_scaling(size_t img_size, unsigned char* data,int channels) {
 
     }
 
+}
 
+void brighter_colors(unsigned char *data, size_t img_size, int channels) {
 
+    for (unsigned char *p = data; p < data + img_size; p += channels) {
+        //organge check
+        if (*p >= 171 && *(p+2) <= 85) {
+            //orange possible
+
+            //red-part
+           if (*p <=127) {
+               *p = 0;
+           }else {
+               *p = 255;
+           }
+            //green-part
+            if (*(p+1)<=85) {
+                *(p+1) = 0;
+            }
+            else if (*(p+1) >= 86 && *(p+1) <= 170) {
+                *(p+1) = 127;
+            }
+            else {
+                *(p+1) = 255;
+            }
+            //blue-part
+            if (*(p+2)<=127) {
+                *(p+2) = 0;
+            }
+            else {
+                *(p+2) = 255;
+            }
+        }
+        else {
+            //orange not possible
+
+            //red-part
+            if (*p <=127) {
+                *p = 0;
+            }else {
+                *p = 255;
+            }
+            //green-part
+            if (*(p+1)<=127) {
+                *(p+1) = 0;
+            }
+            else {
+                *(p+1) = 255;
+            }
+            //blue-part
+            if (*(p+2)<=127) {
+                *(p+2) = 0;
+            }
+            else {
+                *(p+2) = 255;
+            }
+
+        }
+
+    }
 }
 
 int main(void) {
     printf("Hello, World!\n");
     int width, height, channels;
-    unsigned char* data = stbi_load("/Users/felixrehm/CLionProjects/Bildanalyse/Bozen_climbing_spot.jpeg", &width, &height, &channels, 0);
+    unsigned char* data = stbi_load("/Users/felixrehm/CLionProjects/Bildanalyse/Cube.jpeg", &width, &height, &channels, 0);
     if(data == NULL) {
         printf("Error in loading the image\n");
         exit(1);
@@ -65,20 +123,9 @@ int main(void) {
 
 
     //erhöhe den Kontrast
-    linear_scaling(img_size,data,channels);
+    brighter_colors(data,img_size,channels);
     stbi_write_jpg("/Users/felixrehm/CLionProjects/Bildanalyse/high_contrast.jpg", width,height,channels,data,100);
 
-    for (int i = 0; i< 10; i++) {
-        unsigned char* data = stbi_load("/Users/felixrehm/CLionProjects/Bildanalyse/high_contrast.jpg", &width, &height, &channels, 0);
-        if(data == NULL) {
-            printf("Error in loading the image\n");
-            exit(1);
-        }
-        printf("Loaded image with a width of %dpx, a height of %dpx and %d channels\n", width, height, channels);
-        linear_scaling(img_size,data,channels);
-        stbi_write_jpg("/Users/felixrehm/CLionProjects/Bildanalyse/high_contrast.jpg", width,height,channels,data,100);
-
-    }
 
     return 0;
 }
