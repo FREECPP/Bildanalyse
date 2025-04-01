@@ -7,7 +7,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
-void linear_scaling( unsigned char* high_contrast,size_t img_size, unsigned char* data,int channels) {
+void linear_scaling(size_t img_size, unsigned char* data,int channels) {
     printf("Hallo ich bin die Funktion und werde ausgeführt\n");
 
     u_int8_t smallest_brightness = 255, highest_brightness = 0;
@@ -24,10 +24,7 @@ void linear_scaling( unsigned char* high_contrast,size_t img_size, unsigned char
             smallest_brightness = brightness;
             ptr_darkest_pixl = p;
         }
-        if ( i%10 == 0) {
-            printf("Loopcount = %d\n", i);
-        }
-        i++;
+
     }
     printf("Erste Schleife wurde verlassen \n");
     if (ptr_brightest_pxl == NULL || ptr_darkest_pixl == NULL ) {
@@ -42,16 +39,7 @@ void linear_scaling( unsigned char* high_contrast,size_t img_size, unsigned char
         if (*ptr_darkest_pixl == *ptr_brightest_pxl) {
             scale = 1.0f;
         }
-        //*p =(*p - *ptr_darkest_pixl) / (*ptr_brightest_pxl - *ptr_darkest_pixl) * 255;
-        //*(p+1) =(*(p+1) - *ptr_darkest_pixl) / (*ptr_brightest_pxl - *ptr_darkest_pixl) * 255;
-        //*(p+2) =(*(p+2) - *ptr_darkest_pixl) / (*ptr_brightest_pxl - *ptr_darkest_pixl) * 255;
 
-        //next try
-        /*
-        *p = (unsigned char)(*p - *ptr_darkest_pixl) / scale;
-        *(p+1) = (unsigned char)(*(p+1) - *ptr_darkest_pixl) / scale;
-        *(p + 2) = (unsigned char)(*(p+2) - *ptr_darkest_pixl) / scale;
-        */
         *p     = (unsigned char) fmin(255, fmax(0, ((*p     - *ptr_darkest_pixl) * scale)));
         *(p+1) = (unsigned char) fmin(255, fmax(0, ((*(p+1) - *ptr_darkest_pixl) * scale)));
         *(p+2) = (unsigned char) fmin(255, fmax(0, ((*(p+2) - *ptr_darkest_pixl) * scale)));
@@ -65,7 +53,7 @@ void linear_scaling( unsigned char* high_contrast,size_t img_size, unsigned char
 int main(void) {
     printf("Hello, World!\n");
     int width, height, channels;
-    unsigned char* data = stbi_load("/Users/felixrehm/CLionProjects/Bildanalyse/test.jpg", &width, &height, &channels, 0);
+    unsigned char* data = stbi_load("/Users/felixrehm/CLionProjects/Bildanalyse/Bozen_climbing_spot.jpeg", &width, &height, &channels, 0);
     if(data == NULL) {
         printf("Error in loading the image\n");
         exit(1);
@@ -74,31 +62,23 @@ int main(void) {
 
     // Convert the image to gray
     size_t img_size = width * height * channels;
-    int gray_channels = channels == 4 ? 2 : 1;
-    size_t img_gray_size = width * height * gray_channels;
-/*
-    unsigned char *gray_img = malloc(img_gray_size);
-    if (gray_img == NULL) {
-        printf("Unable to allocate memory for the gray image\n");
-        exit(1);
-    }
-    */
-    unsigned char* high_contrast = malloc(img_size);
-    if (high_contrast == NULL) {
-        printf("Es konnte kein Speicher für high_contrast allokiert werden\n");
-        exit(1);
-    }
-    else {
-        printf("Es wurde Speicher für high_contrast unter %p allokiert\n", high_contrast);
-    }
+
 
     //erhöhe den Kontrast
-    linear_scaling(high_contrast,img_size,data,channels);
+    linear_scaling(img_size,data,channels);
     stbi_write_jpg("/Users/felixrehm/CLionProjects/Bildanalyse/high_contrast.jpg", width,height,channels,data,100);
 
-    free(high_contrast);
-    high_contrast = NULL;
-    //free(gray_img);
-    //gray_img = NULL;
+    for (int i = 0; i< 10; i++) {
+        unsigned char* data = stbi_load("/Users/felixrehm/CLionProjects/Bildanalyse/high_contrast.jpg", &width, &height, &channels, 0);
+        if(data == NULL) {
+            printf("Error in loading the image\n");
+            exit(1);
+        }
+        printf("Loaded image with a width of %dpx, a height of %dpx and %d channels\n", width, height, channels);
+        linear_scaling(img_size,data,channels);
+        stbi_write_jpg("/Users/felixrehm/CLionProjects/Bildanalyse/high_contrast.jpg", width,height,channels,data,100);
+
+    }
+
     return 0;
 }
