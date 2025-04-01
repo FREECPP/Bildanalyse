@@ -12,29 +12,50 @@ void linear_scaling( unsigned char* high_contrast,size_t img_size, unsigned char
 
     u_int8_t smallest_brightness = 255, highest_brightness = 0;
     unsigned char *ptr_brightest_pxl = NULL, *ptr_darkest_pixl = NULL;
-
-    for (unsigned char* p = data; *p != *data + img_size; p+= channels) {
-        u_int8_t brightness = (u_int8_t)0.299 * *p + 0.587 * *(p + 1) + 0.114 * *(p +2);
+    int i = 0;
+    for (unsigned char* p = data; p < data + img_size; p+= channels) {
+        u_int8_t brightness = (u_int8_t)(0.299 * (float)*p + 0.587 * (float)*(p + 1) + 0.114 * (float)*(p +2));
         if (brightness > highest_brightness) {
             highest_brightness = brightness;
             ptr_brightest_pxl  = p;
+            printf("Hellster Pixel aktuell: %d\n", brightness);
         }
         if (brightness < smallest_brightness) {
             smallest_brightness = brightness;
             ptr_darkest_pixl = p;
         }
+        if ( i%10 == 0) {
+            printf("Loopcount = %d\n", i);
+        }
+        i++;
     }
+    printf("Erste Schleife wurde verlassen \n");
     if (ptr_brightest_pxl == NULL || ptr_darkest_pixl == NULL ) {
         printf("Es wurde weder ein hellster Pixel noch ein dunkelster Pixel gefunden\n");
         exit(1);
     }
     else {
-        printf("Es wurde ein hellster Pixel unter %p und ein dunkelster unter %p gefunden\n", ptr_brightest_pxl, ptr_darkest_pixl);
+        printf("Es wurde ein hellster Pixel unter %p mit: %d und ein dunkelster unter %p mit: %d gefunden\n", ptr_brightest_pxl,*ptr_brightest_pxl, ptr_darkest_pixl,*ptr_darkest_pixl);
     }
-    for (unsigned char* p = high_contrast; *p !=  *high_contrast + img_size; p += channels) {
-        *p =(*p - *ptr_darkest_pixl) / (*ptr_brightest_pxl - *ptr_darkest_pixl) * 255;
-        *(p+1) =(*(p+1) - *ptr_darkest_pixl) / (*ptr_brightest_pxl - *ptr_darkest_pixl) * 255;
-        *(p+2) =(*(p+2) - *ptr_darkest_pixl) / (*ptr_brightest_pxl - *ptr_darkest_pixl) * 255;
+    for (unsigned char* p = data; p <  data + img_size; p += channels) {
+        float scale = 255.0f /(*ptr_brightest_pxl - *ptr_darkest_pixl);
+        if (*ptr_darkest_pixl == *ptr_brightest_pxl) {
+            scale = 1.0f;
+        }
+        //*p =(*p - *ptr_darkest_pixl) / (*ptr_brightest_pxl - *ptr_darkest_pixl) * 255;
+        //*(p+1) =(*(p+1) - *ptr_darkest_pixl) / (*ptr_brightest_pxl - *ptr_darkest_pixl) * 255;
+        //*(p+2) =(*(p+2) - *ptr_darkest_pixl) / (*ptr_brightest_pxl - *ptr_darkest_pixl) * 255;
+
+        //next try
+        /*
+        *p = (unsigned char)(*p - *ptr_darkest_pixl) / scale;
+        *(p+1) = (unsigned char)(*(p+1) - *ptr_darkest_pixl) / scale;
+        *(p + 2) = (unsigned char)(*(p+2) - *ptr_darkest_pixl) / scale;
+        */
+        *p     = (unsigned char) fmin(255, fmax(0, ((*p     - *ptr_darkest_pixl) * scale)));
+        *(p+1) = (unsigned char) fmin(255, fmax(0, ((*(p+1) - *ptr_darkest_pixl) * scale)));
+        *(p+2) = (unsigned char) fmin(255, fmax(0, ((*(p+2) - *ptr_darkest_pixl) * scale)));
+
     }
 
 
@@ -44,7 +65,7 @@ void linear_scaling( unsigned char* high_contrast,size_t img_size, unsigned char
 int main(void) {
     printf("Hello, World!\n");
     int width, height, channels;
-    unsigned char* data = stbi_load("/Users/felixrehm/CLionProjects/Bildanalyse/Rubiks.png", &width, &height, &channels, 0);
+    unsigned char* data = stbi_load("/Users/felixrehm/CLionProjects/Bildanalyse/test.jpg", &width, &height, &channels, 0);
     if(data == NULL) {
         printf("Error in loading the image\n");
         exit(1);
@@ -70,19 +91,11 @@ int main(void) {
     else {
         printf("Es wurde Speicher für high_contrast unter %p allokiert\n", high_contrast);
     }
+
     //erhöhe den Kontrast
     linear_scaling(high_contrast,img_size,data,channels);
-    stbi_write_jpg("/Users/felixrehm/CLionProjects/Bildanalyse/high_contrast.jpg", width,height,channels,high_contrast,100);
-/*
-    //mache das Bild schwarz weiß
-    for (unsigned char *p = data, *pg = gray_img;p != data + img_size; p += channels, pg += gray_channels) {
-        *pg = (u_int8_t)((*p + *(p + 1) + *(p + 2))/ 3.0);
-        if (channels ==4) {
-            *(pg + 1) = *(p + 3);
-        }
-    }
-    stbi_write_jpg("/Users/felixrehm/CLionProjects/Bildanalyse/sky_gray.jpg", width, height, gray_channels, gray_img, 100);
-*/
+    stbi_write_jpg("/Users/felixrehm/CLionProjects/Bildanalyse/high_contrast.jpg", width,height,channels,data,100);
+
     free(high_contrast);
     high_contrast = NULL;
     //free(gray_img);
