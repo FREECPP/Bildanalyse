@@ -51,7 +51,7 @@ build cmake_object_order_depends_target_Bildanalyse: phony || .
 
 build CMakeFiles/Bildanalyse.dir/main.c.o: C_COMPILER__Bildanalyse_unscanned_Debug /Users/felixrehm/CLionProjects/Bildanalyse/main.c || cmake_object_order_depends_target_Bildanalyse
   DEP_FILE = CMakeFiles/Bildanalyse.dir/main.c.o.d
-  FLAGS = -g -std=gnu11 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.2.sdk -fcolor-diagnostics
+  FLAGS = -g -std=gnu11 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk -fcolor-diagnostics
   OBJECT_DIR = CMakeFiles/Bildanalyse.dir
   OBJECT_FILE_DIR = CMakeFiles/Bildanalyse.dir
   TARGET_COMPILE_PDB = CMakeFiles/Bildanalyse.dir/
@@ -66,7 +66,7 @@ build CMakeFiles/Bildanalyse.dir/main.c.o: C_COMPILER__Bildanalyse_unscanned_Deb
 # Link the executable Bildanalyse
 
 build Bildanalyse: C_EXECUTABLE_LINKER__Bildanalyse_Debug CMakeFiles/Bildanalyse.dir/main.c.o
-  FLAGS = -g -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.2.sdk
+  FLAGS = -g -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk
   OBJECT_DIR = CMakeFiles/Bildanalyse.dir
   POST_BUILD = :
   PRE_LINK = :

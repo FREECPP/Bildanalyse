@@ -49,6 +49,8 @@ void linear_scaling(size_t img_size, unsigned char* data,int channels) {
 }
 
 void brighter_colors(unsigned char *data, size_t img_size, int channels) {
+    u_int8_t high = 255;
+    u_int8_t low = 0;
 
     for (unsigned char *p = data; p < data + img_size; p += channels) {
         //organge check
@@ -57,26 +59,26 @@ void brighter_colors(unsigned char *data, size_t img_size, int channels) {
 
             //red-part
            if (*p <=127) {
-               *p = 0;
+               *p = low;
            }else {
-               *p = 255;
+               *p = high;
            }
             //green-part
             if (*(p+1)<=85) {
-                *(p+1) = 0;
+                *(p+1) = low;
             }
             else if (*(p+1) >= 86 && *(p+1) <= 170) {
                 *(p+1) = 127;
             }
             else {
-                *(p+1) = 255;
+                *(p+1) = high;
             }
             //blue-part
             if (*(p+2)<=127) {
-                *(p+2) = 0;
+                *(p+2) = low;
             }
             else {
-                *(p+2) = 255;
+                *(p+2) = high;
             }
         }
         else {
@@ -84,27 +86,47 @@ void brighter_colors(unsigned char *data, size_t img_size, int channels) {
 
             //red-part
             if (*p <=127) {
-                *p = 0;
+                *p = low;
             }else {
-                *p = 255;
+                *p = high;
             }
             //green-part
             if (*(p+1)<=127) {
-                *(p+1) = 0;
+                *(p+1) = low;
             }
             else {
-                *(p+1) = 255;
+                *(p+1) = high;
             }
             //blue-part
             if (*(p+2)<=127) {
-                *(p+2) = 0;
+                *(p+2) = low;
             }
             else {
-                *(p+2) = 255;
+                *(p+2) = high;
             }
 
         }
 
+    }
+}
+void make_mid_visible(int width, int height, unsigned char *data, size_t image_size, int channels) {
+    u_int8_t high = 255;
+    u_int8_t low = 0;
+    //vertical line
+    int half_width_pos = width * channels / 2;
+    for (unsigned char *p = data + half_width_pos; p < data + image_size; p += width*channels) {
+        //vertical line in magenta
+        *p =  high;
+        *(p + 1) = low;
+        *(p + 2) = high;
+    }
+    //horizontal line
+    int half_height_pos =width * height * channels /2;
+    for (unsigned char *p = data + half_height_pos; p < data + half_height_pos + width * channels; p += channels) {
+        //vertical line in magenta
+        *p =  high;
+        *(p + 1) = low;
+        *(p + 2) = high;
     }
 }
 
@@ -124,6 +146,7 @@ int main(void) {
 
     //erhöhe den Kontrast
     brighter_colors(data,img_size,channels);
+    make_mid_visible(width,height,data, img_size, channels);
     stbi_write_jpg("/Users/felixrehm/CLionProjects/Bildanalyse/high_contrast.jpg", width,height,channels,data,100);
 
 
