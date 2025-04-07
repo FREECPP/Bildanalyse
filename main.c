@@ -130,6 +130,48 @@ void make_mid_visible(int width, int height, unsigned char *data, size_t image_s
     }
 }
 
+void find_upper_left_rubic(unsigned char *data, size_t img_size, int channels, int width, int pxl_tolerance,
+    int black_pxl, int non_black_pxl) {
+    u_int8_t high = 255;
+    u_int8_t low = 0;
+    //iterate over whole picture
+    for (unsigned char *p = data; p < data + img_size; p+=channels) {
+        //check if actual pixel is black
+        if (*p == low && *(p+1) == low && *(p +2) == low) {
+            //look over the next n pixels(horizontal) | Check if they are also black
+            unsigned char * pxl_addr_horizontal;
+            int flag_break = 0;
+            for (unsigned char *q = p+1; q < p + black_pxl; q+=(3*channels)) {
+                if (*q != low || *(q+1) != low || *(q +2) != low) {
+                    flag_break = 1;
+                    break;
+                }
+                //Save nth pixel address
+                pxl_addr_horizontal = q;
+            }
+            if (flag_break == 1) {
+                break;
+            }
+            //look over the next n pixels(vertical) | Check if they are also black
+            //for (unsigned char *q = p; q <  )
+        }
+
+
+
+
+
+
+        //Save nth pixel address
+
+        //starting from last vertical pixel -> after a tolerance look for the next n pixels (horizontal)
+        //if they are not black
+
+        //starting from last horizontal pixel (above) -> after a tolerance, look for the next n pixels (vertical)
+        //if they are not black
+
+    }
+}
+
 int main(void) {
     printf("Hello, World!\n");
     int width, height, channels;
