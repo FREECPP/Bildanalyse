@@ -193,20 +193,14 @@ void find_upper_left_rubic(unsigned char *data, size_t img_size, int channels, i
             }
             // if we are at this point of the function we can be most certain that we have the address of the upper left
             // corner pixel
-
+            unsigned char *left_upper_corner_color = NULL;
+            if (*pxl_color_upper_left_candidate_1 == *pxl_color_upper_left_candidate_2 && *(pxl_color_upper_left_candidate_1 +1) == *(pxl_color_upper_left_candidate_2 + 1) && *(pxl_color_upper_left_candidate_1 +2) == *(pxl_color_upper_left_candidate_2 + 2)) {
+                left_upper_corner_color = pxl_color_upper_left_candidate_1;
+            }
         }
-
-
-
-
-
-
-
-
-
-
-
-
+        *p = high;
+        *(p + 1) = low;
+        *(p + 2) = high;
     }
 }
 
