@@ -139,7 +139,10 @@ void find_upper_left_rubic(unsigned char *data, size_t img_size, int channels, i
         //check if actual pixel is black
         if (*p == low && *(p+1) == low && *(p +2) == low) {
             //look over the next n pixels(horizontal) | Check if they are also black
-            unsigned char * pxl_addr_horizontal;
+            unsigned char *pxl_addr_horizontal = NULL;
+            unsigned char *pxl_addr_vertical = NULL;
+            unsigned char *pxl_color_upper_left_candidate_1 = NULL;
+            unsigned char *pxl_color_upper_left_candidate_2 = NULL;
             int flag_break = 0;
             for (unsigned char *q = p+1; q < p + black_pxl; q+=(3*channels)) {
                 if (*q != low || *(q+1) != low || *(q +2) != low) {
@@ -153,7 +156,44 @@ void find_upper_left_rubic(unsigned char *data, size_t img_size, int channels, i
                 break;
             }
             //look over the next n pixels(vertical) | Check if they are also black
-            //for (unsigned char *q = p; q <  )
+            for (unsigned char *q = p; q < p + (black_pxl * channels * width);q += (width * channels) ) {
+                if (*q != low || *(q+1) != low || *(q +2) != low) {
+                    flag_break = 1;
+                    break;
+                }
+                //Save nth pixel address
+                pxl_addr_vertical = q;
+            }
+            if (flag_break == 1) {
+                break;
+            }
+            //starting from last vertical pixel -> after a tolerance look for the next n pixels (horizontal)
+            //if they are not black
+            for (unsigned char *q = (pxl_addr_vertical + pxl_tolerance); q <(pxl_addr_vertical + pxl_tolerance + non_black_pxl); q += (3*channels)) {
+                if (*q == low || *(q+1) == low || *(q +2) == low) {
+                    flag_break = 1;
+                    break;
+                }
+                pxl_color_upper_left_candidate_1 = q;
+            }
+            if (flag_break == 1) {
+                break;
+            }
+            //starting from last horizontal pixel (above) -> after a tolerance, look for the next n pixels (vertical)
+            //if they are not black
+            for (unsigned char *q = (pxl_addr_horizontal + (pxl_tolerance *width*channels)); q < (pxl_addr_horizontal + (pxl_tolerance * width * channels) + (non_black_pxl * width * channels)); q+=(width * channels)) {
+                if (*q == low || *(q+1) == low || *(q +2) == low) {
+                    flag_break = 1;
+                    break;
+                }
+                pxl_color_upper_left_candidate_2 = q;
+            }
+            if (flag_break == 1) {
+                break;
+            }
+            // if we are at this point of the function we can be most certain that we have the address of the upper left
+            // corner pixel
+
         }
 
 
@@ -161,13 +201,11 @@ void find_upper_left_rubic(unsigned char *data, size_t img_size, int channels, i
 
 
 
-        //Save nth pixel address
 
-        //starting from last vertical pixel -> after a tolerance look for the next n pixels (horizontal)
-        //if they are not black
 
-        //starting from last horizontal pixel (above) -> after a tolerance, look for the next n pixels (vertical)
-        //if they are not black
+
+
+
 
     }
 }
