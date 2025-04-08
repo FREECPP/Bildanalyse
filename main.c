@@ -130,10 +130,11 @@ void make_mid_visible(int width, int height, unsigned char *data, size_t image_s
     }
 }
 
-void find_upper_left_rubic(unsigned char *data, size_t img_size, int channels, int width, int pxl_tolerance,
+unsigned char* find_upper_left_rubic(unsigned char *data, size_t img_size, int channels, int width, int pxl_tolerance,
     int black_pxl, int non_black_pxl) {
     u_int8_t high = 255;
     u_int8_t low = 0;
+    unsigned char *ptr_upper_left = NULL;
     //iterate over whole picture
     for (unsigned char *p = data; p < data + img_size; p+=channels) {
         //check if actual pixel is black
@@ -171,8 +172,6 @@ void find_upper_left_rubic(unsigned char *data, size_t img_size, int channels, i
                 }
                 //starting from last vertical pixel -> after a tolerance look for the next n pixels (horizontal)
                 //if they are not black
-
-
                 for (unsigned char *q = (pxl_addr_vertical + pxl_tolerance); q <(pxl_addr_vertical + pxl_tolerance + non_black_pxl); q += (3*channels)) {
                     if (*q == low && *(q+1) == low && *(q +2) == low) {
                         flag_break = 1;
@@ -206,13 +205,27 @@ void find_upper_left_rubic(unsigned char *data, size_t img_size, int channels, i
                     left_upper_corner_color = pxl_color_upper_left_candidate_1;
                 }
 
-                *p = *left_upper_corner_color;
-                *(p + 1) = *(left_upper_corner_color+1);
-                *(p + 2) = *(left_upper_corner_color+2);
+                *p = *pxl_color_upper_left_candidate_1;
+                *(p + 1) = *(pxl_color_upper_left_candidate_1+1);
+                *(p + 2) = *(pxl_color_upper_left_candidate_1+2);
+                ptr_upper_left =p;
                 break;
             }
         }
     }
+    return ptr_upper_left;
+}
+
+void find_lower_right_rubic(unsigned char *data, size_t img_size, int channels, int width, int pxl_tolerance,
+    int black_pxl, int non_black_pxl) {
+    u_int8_t low = 0;
+    u_int8_t high = 255;
+    for (unsigned char *p = data + img_size; p > data; p-=channels) {
+        if (*p == low && *(p+1) == low && *(p +2) == low) {
+
+        }
+    }
+
 }
 
 int main(void) {
@@ -232,7 +245,7 @@ int main(void) {
     //erhöhe den Kontrast
     brighter_colors(data,img_size,channels);
     make_mid_visible(width,height,data, img_size, channels);
-    find_upper_left_rubic(data,img_size,channels,width,20,70,20);
+    unsigned char *ptr_upper_left = find_upper_left_rubic(data,img_size,channels,width,10,100,20);
     stbi_write_jpg("/Users/felixrehm/CLionProjects/Bildanalyse/high_contrast.jpg", width,height,channels,data,100);
 
 
