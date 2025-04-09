@@ -205,9 +205,9 @@ unsigned char* find_upper_left_rubic(unsigned char *data, size_t img_size, int c
                     left_upper_corner_color = pxl_color_upper_left_candidate_1;
                 }
 
-                *p = *pxl_color_upper_left_candidate_1;
-                *(p + 1) = *(pxl_color_upper_left_candidate_1+1);
-                *(p + 2) = *(pxl_color_upper_left_candidate_1+2);
+                *p = high;
+                *(p + 1) = low;
+                *(p + 2) = high;
                 ptr_upper_left =p;
                 break;
             }
@@ -220,9 +220,80 @@ void find_lower_right_rubic(unsigned char *data, size_t img_size, int channels, 
     int black_pxl, int non_black_pxl) {
     u_int8_t low = 0;
     u_int8_t high = 255;
+    unsigned char *ptr_upper_left = NULL;
+    //iterate over whole picture but backwards
     for (unsigned char *p = data + img_size; p > data; p-=channels) {
+        //check if actual pixel is black
         if (*p == low && *(p+1) == low && *(p +2) == low) {
+            while (1) {
+                int flag_break = 0;
+                unsigned char *pxl_addr_horizontal = NULL;
+                unsigned char *pxl_addr_vertical = NULL;
+                unsigned char *pxl_color_upper_left_candidate_1 = NULL;
+                unsigned char *pxl_color_upper_left_candidate_2 = NULL;
+                //look over the next n pixels(horizontal) | Check if they are also black
+                for (unsigned char *q = p-channels; q < p - black_pxl; q-=(3*channels)) {
+                    if (*q != low || *(q+1) != low || *(q +2) != low) {
+                        flag_break = 1;
+                        break;
+                    }
+                    //Save nth pixel address
+                    pxl_addr_horizontal = q;
+                }
+                if (flag_break == 1) {
+                    break;
+                }
 
+                //look over the next n pixels(vertical) | Check if they are also black
+                for (unsigned char *q = p; q > p - (black_pxl * channels * width);q -= (width * channels) ) {
+                    if (*q != low || *(q+1) != low || *(q +2) != low) {
+                        flag_break = 1;
+                        break;
+                    }
+                    //Save nth pixel address
+                    pxl_addr_vertical = q;
+                }
+                if (flag_break == 1) {
+                    break;
+                }
+                //starting from last vertical pixel -> after a tolerance look for the next n pixels (horizontal)
+                //if they are not black
+                for (unsigned char *q = (pxl_addr_vertical - pxl_tolerance); q >(pxl_addr_vertical - pxl_tolerance - non_black_pxl); q -= (3*channels)) {
+                    if (*q == low && *(q+1) == low && *(q +2) == low) {
+                        flag_break = 1;
+                        break;
+                    }
+                    pxl_color_upper_left_candidate_1 = q;
+                }
+                if (flag_break == 1) {
+                    break;
+                }
+                //starting from last horizontal pixel (above) -> after a tolerance, look for the next n pixels (vertical)
+                //if they are not black
+                for (unsigned char *q = (pxl_addr_horizontal - (pxl_tolerance *width*channels)); q > (pxl_addr_horizontal - (pxl_tolerance * width * channels) - (non_black_pxl * width * channels)); q-=(width * channels)) {
+                    if (*q == low && *(q+1) == low && *(q +2) == low) {
+                        flag_break = 1;
+                        break;
+                    }
+                    pxl_color_upper_left_candidate_2 = q;
+                }
+                if (flag_break == 1) {
+                    break;
+                }
+                // if we are at this point of the function we can be most certain that we have the address of the upper left
+                // corner pixel
+                printf("Found possible corner at %p\n",p);
+                unsigned char *left_upper_corner_color = NULL;
+                if (*pxl_color_upper_left_candidate_1 == *pxl_color_upper_left_candidate_2 && *(pxl_color_upper_left_candidate_1 +1) == *(pxl_color_upper_left_candidate_2 + 1) && *(pxl_color_upper_left_candidate_1 +2) == *(pxl_color_upper_left_candidate_2 + 2)) {
+                    left_upper_corner_color = pxl_color_upper_left_candidate_1;
+                }
+
+                *p = high;
+                *(p + 1) = low;
+                *(p + 2) = high;
+                ptr_upper_left =p;
+                break;
+            }
         }
     }
 
