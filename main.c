@@ -235,6 +235,11 @@ void find_lower_right_rubic(unsigned char *data, size_t img_size, int channels, 
                 unsigned char *pxl_color_upper_left_candidate_1 = NULL;
                 unsigned char *pxl_color_upper_left_candidate_2 = NULL;
                 //look over the next n pixels(horizontal) | Check if they are also black
+
+                //Check for an negative memory overflow
+                if ((p-channels) < lower_bound || (p - black_pxl) < lower_bound) {
+                    break;
+                }
                 for (unsigned char *q = p-channels; q < p - black_pxl; q-=(3*channels)) {
                     if (*q != low || *(q+1) != low || *(q +2) != low) {
                         flag_break = 1;
@@ -247,6 +252,9 @@ void find_lower_right_rubic(unsigned char *data, size_t img_size, int channels, 
                     break;
                 }
                 //look over the next n pixels(vertical) | Check if they are also black
+
+                //Check for an negative memory overflow
+                //Here is code missing
                 for (unsigned char *q = p; q > p - (black_pxl * channels * width);q -= (width * channels) ) {
                     if (*q != low || *(q+1) != low || *(q +2) != low) {
                         flag_break = 1;
