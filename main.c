@@ -236,12 +236,7 @@ void find_lower_right_rubic(unsigned char *data, size_t img_size, int channels, 
                 unsigned char *pxl_color_upper_left_candidate_2 = NULL;
                 //look over the next n pixels(horizontal) | Check if they are also black
                     //Check for an negative memory overflow
-                if ((p-channels) < lower_bound) {
-                    printf("line 240\n");
-                    break;
-                }
-                if ( (p - black_pxl) < lower_bound) {
-                    printf("line 244\n");
+                if (((p-channels) < lower_bound) || ((p - black_pxl) < lower_bound)) {
                     break;
                 }
                 for (unsigned char *q = p-channels; q > p - black_pxl; q-=(3*channels)) {
@@ -257,12 +252,7 @@ void find_lower_right_rubic(unsigned char *data, size_t img_size, int channels, 
                 }
                 //look over the next n pixels(vertical) | Check if they are also black
                     //Check for an negative memory overflow
-                if (p< lower_bound) {
-                    printf("line 256\n");
-                    break;
-                }
-                if (p - (black_pxl * channels * width) < lower_bound ) {
-                    printf("Line 260\n");
+                if ((p< lower_bound) || (p - (black_pxl * channels * width) < lower_bound )) {
                     break;
                 }
                 for (unsigned char *q = p; q > p - (black_pxl * channels * width);q -= (width * channels) ) {
@@ -279,12 +269,7 @@ void find_lower_right_rubic(unsigned char *data, size_t img_size, int channels, 
                 //starting from last vertical pixel -> after a tolerance look for the next n pixels (horizontal)
                 //if they are not black
                     //Check for an negative memory overflow
-                if ((pxl_addr_vertical - pxl_tolerance) < lower_bound) {
-                    printf("line 278\n");
-                    break;
-                }
-                if ((pxl_addr_vertical - pxl_tolerance - non_black_pxl) < lower_bound) {
-                    printf("line 282\n");
+                if (((pxl_addr_vertical - pxl_tolerance) < lower_bound) || ((pxl_addr_vertical - pxl_tolerance - non_black_pxl) < lower_bound)) {
                     break;
                 }
                 for (unsigned char *q = (pxl_addr_vertical - pxl_tolerance); q >(pxl_addr_vertical - pxl_tolerance - non_black_pxl); q -= (3*channels)) {
@@ -297,20 +282,10 @@ void find_lower_right_rubic(unsigned char *data, size_t img_size, int channels, 
                 if (flag_break == 1) {
                     break;
                 }
-
                 //starting from last horizontal pixel (above) -> after a tolerance, look for the next n pixels (vertical)
                 //if they are not black
                     //Check for negative memory overflow
-                if (pxl_addr_horizontal == NULL) {
-                    printf("pxl_addr_horizontal == NULL\n");
-                    break;
-                }
-                if (pxl_addr_horizontal < lower_bound) {
-                    printf("Fehler bei pxl_addr_horizontal\n");
-                    break;
-                }
-                if (pxl_addr_horizontal - (pxl_tolerance *width*channels) < lower_bound) {
-                    printf("Line 304\n");
+                if ((pxl_addr_horizontal == NULL) || (pxl_addr_horizontal < lower_bound) || (pxl_addr_horizontal - (pxl_tolerance *width*channels) < lower_bound) ) {
                     break;
                 }
                 for (unsigned char *q = (pxl_addr_horizontal - (pxl_tolerance *width*channels));q > lower_bound && q > (pxl_addr_horizontal - (pxl_tolerance * width * channels) - (non_black_pxl * width * channels)); q-=(width * channels)) {
@@ -318,7 +293,6 @@ void find_lower_right_rubic(unsigned char *data, size_t img_size, int channels, 
                         flag_break = 1;
                         break;
                     }
-                    printf("inside for\n");
                     pxl_color_upper_left_candidate_2 = q;
                 }
                 if (flag_break == 1) {
@@ -331,7 +305,6 @@ void find_lower_right_rubic(unsigned char *data, size_t img_size, int channels, 
                 if (*pxl_color_upper_left_candidate_1 == *pxl_color_upper_left_candidate_2 && *(pxl_color_upper_left_candidate_1 +1) == *(pxl_color_upper_left_candidate_2 + 1) && *(pxl_color_upper_left_candidate_1 +2) == *(pxl_color_upper_left_candidate_2 + 2)) {
                     left_upper_corner_color = pxl_color_upper_left_candidate_1;
                 }
-
                 *p = high;
                 *(p + 1) = low;
                 *(p + 2) = high;
