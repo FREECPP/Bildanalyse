@@ -236,10 +236,15 @@ void find_lower_right_rubic(unsigned char *data, size_t img_size, int channels, 
                 unsigned char *pxl_color_upper_left_candidate_2 = NULL;
                 //look over the next n pixels(horizontal) | Check if they are also black
                     //Check for an negative memory overflow
-                if ((p-channels) < lower_bound || (p - black_pxl) < lower_bound) {
+                if ((p-channels) < lower_bound) {
+                    printf("line 240\n");
                     break;
                 }
-                for (unsigned char *q = p-channels; q < p - black_pxl; q-=(3*channels)) {
+                if ( (p - black_pxl) < lower_bound) {
+                    printf("line 244\n");
+                    break;
+                }
+                for (unsigned char *q = p-channels; q > p - black_pxl; q-=(3*channels)) {
                     if (*q != low || *(q+1) != low || *(q +2) != low) {
                         flag_break = 1;
                         break;
@@ -252,8 +257,12 @@ void find_lower_right_rubic(unsigned char *data, size_t img_size, int channels, 
                 }
                 //look over the next n pixels(vertical) | Check if they are also black
                     //Check for an negative memory overflow
-                if (p < lower_bound || p - (black_pxl * channels * width) < lower_bound ) {
-                    printf("Line 259\n");
+                if (p< lower_bound) {
+                    printf("line 256\n");
+                    break;
+                }
+                if (p - (black_pxl * channels * width) < lower_bound ) {
+                    printf("Line 260\n");
                     break;
                 }
                 for (unsigned char *q = p; q > p - (black_pxl * channels * width);q -= (width * channels) ) {
@@ -270,7 +279,12 @@ void find_lower_right_rubic(unsigned char *data, size_t img_size, int channels, 
                 //starting from last vertical pixel -> after a tolerance look for the next n pixels (horizontal)
                 //if they are not black
                     //Check for an negative memory overflow
-                if ((pxl_addr_vertical - pxl_tolerance) < lower_bound || (pxl_addr_vertical - pxl_tolerance - non_black_pxl) < lower_bound) {
+                if ((pxl_addr_vertical - pxl_tolerance) < lower_bound) {
+                    printf("line 278\n");
+                    break;
+                }
+                if ((pxl_addr_vertical - pxl_tolerance - non_black_pxl) < lower_bound) {
+                    printf("line 282\n");
                     break;
                 }
                 for (unsigned char *q = (pxl_addr_vertical - pxl_tolerance); q >(pxl_addr_vertical - pxl_tolerance - non_black_pxl); q -= (3*channels)) {
@@ -287,6 +301,10 @@ void find_lower_right_rubic(unsigned char *data, size_t img_size, int channels, 
                 //starting from last horizontal pixel (above) -> after a tolerance, look for the next n pixels (vertical)
                 //if they are not black
                     //Check for negative memory overflow
+                if (pxl_addr_horizontal == NULL) {
+                    printf("pxl_addr_horizontal == NULL\n");
+                    break;
+                }
                 if (pxl_addr_horizontal < lower_bound) {
                     printf("Fehler bei pxl_addr_horizontal\n");
                     break;
@@ -343,7 +361,7 @@ int main(void) {
     brighter_colors(data,img_size,channels);
     make_mid_visible(width,height,data, img_size, channels);
     unsigned char *ptr_upper_left = find_upper_left_rubic(data,img_size,channels,width,10,100,20);
-    find_lower_right_rubic(data,img_size,channels,width,10,100,20);
+    find_lower_right_rubic(data,img_size,channels,width,10,40,20);
     stbi_write_jpg("/Users/felixrehm/CLionProjects/Bildanalyse/high_contrast.jpg", width,height,channels,data,100);
 
 
