@@ -217,13 +217,13 @@ unsigned char* find_upper_left_rubic(unsigned char *data, size_t img_size, int c
     return ptr_upper_left;
 }
 
-void find_lower_right_rubic(unsigned char *data, size_t img_size, int channels, int width, int pxl_tolerance,
+unsigned char* find_lower_right_rubic(unsigned char *data, size_t img_size, int channels, int width, int pxl_tolerance,
     int black_pxl, int non_black_pxl) {
     u_int8_t low = 0;
     u_int8_t high = 255;
     unsigned char *lower_bound = data;
     unsigned char *upper_bound = data + img_size;
-    unsigned char *ptr_upper_left = NULL;
+    unsigned char *ptr_lower_right = NULL;
     //iterate over whole picture but backwards
     for (unsigned char *p = data + img_size; p > data; p-=channels) {
         //check if actual pixel is black
@@ -308,12 +308,23 @@ void find_lower_right_rubic(unsigned char *data, size_t img_size, int channels, 
                 *p = high;
                 *(p + 1) = low;
                 *(p + 2) = high;
-                ptr_upper_left =p;
+                ptr_lower_right =p;
                 break;
             }
         }
     }
+    return ptr_lower_right;
 
+}
+int calculate_new_height(unsigned char* ptr_upper_left, unsigned char* ptr_lower_right, int old_width,int channels) {
+    int new_height = (ptr_lower_right - ptr_upper_left) /old_width /channels;
+    printf("ptr_lower_right - ptr_upper_left: %d\n", ptr_lower_right-ptr_upper_left);
+
+    return new_height;
+}
+int calculate_new_width(unsigned char* ptr_upper_left, unsigned char* ptr_lower_right, int old_width, int new_hight,int channels) {
+    int new_width = (ptr_lower_right -(new_hight *old_width*channels) - ptr_upper_left)/channels;
+    return new_width;
 }
 
 int main(void) {
@@ -332,10 +343,17 @@ int main(void) {
 
     //erhöhe den Kontrast
     brighter_colors(data,img_size,channels);
-    make_mid_visible(width,height,data, img_size, channels);
+    //make_mid_visible(width,height,data, img_size, channels);
     unsigned char *ptr_upper_left = find_upper_left_rubic(data,img_size,channels,width,10,100,20);
-    find_lower_right_rubic(data,img_size,channels,width,10,40,20);
+    unsigned char *ptr_lower_right = find_lower_right_rubic(data,img_size,channels,width,10,40,20);
+    int new_height = calculate_new_height(ptr_upper_left,ptr_lower_right,width,channels);
+    int new_width = calculate_new_width(ptr_upper_left,ptr_lower_right,width,new_height,channels);
+    printf("img_size:%d\n",&img_size);
+    printf("New_height:%d, New_width: %d\n",new_height,new_width);
+    printf("Old_height: %d, Old_width: %d\n",height,width);
     stbi_write_jpg("/Users/felixrehm/CLionProjects/Bildanalyse/high_contrast.jpg", width,height,channels,data,100);
+    //stbi_write_jpg("/Users/felixrehm/CLionProjects/Bildanalyse/high_contrast.jpg", new_width,new_height,channels,ptr_upper_left,100);
+
 
 
     return 0;
