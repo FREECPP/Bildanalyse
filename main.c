@@ -148,6 +148,10 @@ unsigned char* find_upper_left_rubic(unsigned char *data, size_t img_size, int c
                 unsigned char *pxl_color_upper_left_candidate_1 = NULL;
                 unsigned char *pxl_color_upper_left_candidate_2 = NULL;
                 int flag_break = 0;
+                // Check for positive memory overflow
+                if (p+1 > upper_bound || (p + black_pxl) > upper_bound ) {
+                    break;
+                }
                 for (unsigned char *q = p+1; q < p + black_pxl; q+=(3*channels)) {
                     if (*q != low || *(q+1) != low || *(q +2) != low) {
                         flag_break = 1;
@@ -160,7 +164,10 @@ unsigned char* find_upper_left_rubic(unsigned char *data, size_t img_size, int c
                     break;
                 }
                 //look over the next n pixels(vertical) | Check if they are also black
-
+                    //Check for positive memory overflow
+                if (p > upper_bound || p + (black_pxl * channels * width) > upper_bound) {
+                    break;
+                }
                 for (unsigned char *q = p; q < p + (black_pxl * channels * width);q += (width * channels) ) {
                     if (*q != low || *(q+1) != low || *(q +2) != low) {
                         flag_break = 1;
@@ -174,6 +181,10 @@ unsigned char* find_upper_left_rubic(unsigned char *data, size_t img_size, int c
                 }
                 //starting from last vertical pixel -> after a tolerance look for the next n pixels (horizontal)
                 //if they are not black
+                    //Check for positive memory overflow
+                if ((pxl_addr_vertical + pxl_tolerance)> upper_bound || (pxl_addr_vertical + pxl_tolerance + non_black_pxl) > upper_bound ) {
+                    break;
+                }
                 for (unsigned char *q = (pxl_addr_vertical + pxl_tolerance); q <(pxl_addr_vertical + pxl_tolerance + non_black_pxl); q += (3*channels)) {
                     if (*q == low && *(q+1) == low && *(q +2) == low) {
                         flag_break = 1;
@@ -181,14 +192,16 @@ unsigned char* find_upper_left_rubic(unsigned char *data, size_t img_size, int c
                     }
                     pxl_color_upper_left_candidate_1 = q;
                 }
-
-
                 if (flag_break == 1) {
                     break;
                 }
 
                 //starting from last horizontal pixel (above) -> after a tolerance, look for the next n pixels (vertical)
                 //if they are not black
+                    //Check for positive memory overflow
+                if ((pxl_addr_horizontal + (pxl_tolerance *width*channels)) > upper_bound || (pxl_addr_horizontal + (pxl_tolerance * width * channels) + (non_black_pxl * width * channels)) > upper_bound) {
+                    break;
+                }
                 for (unsigned char *q = (pxl_addr_horizontal + (pxl_tolerance *width*channels)); q < (pxl_addr_horizontal + (pxl_tolerance * width * channels) + (non_black_pxl * width * channels)); q+=(width * channels)) {
                     if (*q == low && *(q+1) == low && *(q +2) == low) {
                         flag_break = 1;
@@ -330,7 +343,7 @@ int calculate_new_width(unsigned char* ptr_upper_left, unsigned char* ptr_lower_
 int main(void) {
     printf("Hello, World!\n");
     int width, height, channels;
-    unsigned char* data = stbi_load("/Users/felixrehm/CLionProjects/Bildanalyse/Cube.jpeg", &width, &height, &channels, 0);
+    unsigned char* data = stbi_load("/Users/felixrehm/CLionProjects/Bildanalyse/Cube_3.jpg", &width, &height, &channels, 0);
     if(data == NULL) {
         printf("Error in loading the image\n");
         exit(1);
@@ -345,7 +358,7 @@ int main(void) {
     brighter_colors(data,img_size,channels);
     //make_mid_visible(width,height,data, img_size, channels);
     unsigned char *ptr_upper_left = find_upper_left_rubic(data,img_size,channels,width,10,100,20);
-    unsigned char *ptr_lower_right = find_lower_right_rubic(data,img_size,channels,width,10,40,20);
+    unsigned char *ptr_lower_right = find_lower_right_rubic(data,img_size,channels,width,10,700,20);
     int new_height = calculate_new_height(ptr_upper_left,ptr_lower_right,width,channels);
     int new_width = calculate_new_width(ptr_upper_left,ptr_lower_right,width,new_height,channels);
     printf("img_size:%d\n",&img_size);
