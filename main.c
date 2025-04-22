@@ -339,11 +339,29 @@ int calculate_new_width(unsigned char* ptr_upper_left, unsigned char* ptr_lower_
     int new_width = (ptr_lower_right -(new_hight *old_width*channels) - ptr_upper_left)/channels;
     return new_width;
 }
+void crop_picture(int new_width, int new_height, int channels, unsigned char* ptr_upper_left, int width) {
+    unsigned char *ptr_cropped_pic = malloc(new_height * new_width * channels);
+    unsigned char *loop_start_original = ptr_upper_left;
+    unsigned char *loop_start_copy = ptr_cropped_pic;
+    for (int i = 0; i < new_height; i++) {
+        for (unsigned char *p = loop_start_original, *q = loop_start_copy; p < loop_start_original + new_width*channels; p+=channels, q+=channels) {
+            *q = *p;
+            *(q+1) = *(p+1);
+            *(q+2) = *(p+2);
+        }
+        loop_start_original += width *channels;
+        loop_start_copy += new_width *channels;
+    }
+    stbi_write_jpg("/Users/felixrehm/CLionProjects/Bildanalyse/high_contrast.jpg", new_width,new_height,channels,ptr_cropped_pic,100);
+
+    free(ptr_cropped_pic);
+    ptr_cropped_pic = NULL;
+}
 
 int main(void) {
     printf("Hello, World!\n");
     int width, height, channels;
-    unsigned char* data = stbi_load("/Users/felixrehm/CLionProjects/Bildanalyse/Cube_3.jpg", &width, &height, &channels, 0);
+    unsigned char* data = stbi_load("/Users/felixrehm/CLionProjects/Bildanalyse/Cube.jpeg", &width, &height, &channels, 0);
     if(data == NULL) {
         printf("Error in loading the image\n");
         exit(1);
@@ -358,13 +376,14 @@ int main(void) {
     brighter_colors(data,img_size,channels);
     //make_mid_visible(width,height,data, img_size, channels);
     unsigned char *ptr_upper_left = find_upper_left_rubic(data,img_size,channels,width,10,100,20);
-    unsigned char *ptr_lower_right = find_lower_right_rubic(data,img_size,channels,width,10,700,20);
+    unsigned char *ptr_lower_right = find_lower_right_rubic(data,img_size,channels,width,10,100,20);
     int new_height = calculate_new_height(ptr_upper_left,ptr_lower_right,width,channels);
     int new_width = calculate_new_width(ptr_upper_left,ptr_lower_right,width,new_height,channels);
     printf("img_size:%d\n",&img_size);
     printf("New_height:%d, New_width: %d\n",new_height,new_width);
     printf("Old_height: %d, Old_width: %d\n",height,width);
-    stbi_write_jpg("/Users/felixrehm/CLionProjects/Bildanalyse/high_contrast.jpg", width,height,channels,data,100);
+    crop_picture(new_width,new_height,channels,ptr_upper_left,width);
+    //stbi_write_jpg("/Users/felixrehm/CLionProjects/Bildanalyse/high_contrast.jpg", width,height,channels,data,100);
     //stbi_write_jpg("/Users/felixrehm/CLionProjects/Bildanalyse/high_contrast.jpg", new_width,new_height,channels,ptr_upper_left,100);
 
 
