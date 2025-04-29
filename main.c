@@ -357,11 +357,67 @@ void crop_picture(int new_width, int new_height, int channels, unsigned char* pt
     free(ptr_cropped_pic);
     ptr_cropped_pic = NULL;
 }
+void analize_cube_panels(int new_width, int channels, int new_height, unsigned char *upper_right) {
+    int panel_width = new_width / 3;
+    int panel_height = new_height /3;
+    int factor_first_pxl_value = 1000000;
+    int factor_second_pxl_value = 1000;
+    //Pointer
+    unsigned char *ptr_start = upper_right;
+    // Char-array to transform orientation of colors into digital version
+    char cube_side[9];
+
+    for (int i = 0; i < 9; i++) {
+        // Pixel counts
+        int white_pxl_count = 0; // (255,255,255)
+        int yellow_pxl_count = 0; // (255,255,0)
+        int blue_pxl_count = 0; // (0,0,255),(0,255,255)
+        int green_pxl_count = 0; // (0,255,0)
+        int red_pxl_count = 0; // (255,0,0)
+        int orange_pxl_count = 0; // (255,127,0)
+        for (unsigned char *q = ptr_start; q <= ptr_start + (panel_height*new_width);q += new_width*channels) {
+            for (unsigned char *p = q; p < q + (panel_width*channels); p +=channels) {
+                unsigned int pxl_decode = *p * factor_first_pxl_value + *(p+1)*factor_second_pxl_value + *(p+2);
+                switch (pxl_decode) {
+                    case 255255255: // refers to white ->(255,255,255)
+                        white_pxl_count++;
+                        break;
+                    case 255255000: //  refers to yellow -> (255,255,0)
+                        yellow_pxl_count++;
+                        break;
+                    case 255: // refers to blue -> (0,0,255)
+                        blue_pxl_count++;
+                        break;
+                    case 255255: // refers to blue -> (0,255,255)
+                        blue_pxl_count++;
+                        break;
+                    case 255000: // refers to green -> (0,255,0)
+                        green_pxl_count++;
+                        break;
+                    case 255000000: //refers to red -> (255,0,0)
+                        red_pxl_count++;
+                        break;
+                    case 255127000: //refers to oranger -> (255,127,0)
+                        orange_pxl_count++;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+    }
+
+
+
+
+
+}
 
 int main(void) {
     printf("Hello, World!\n");
     int width, height, channels;
-    unsigned char* data = stbi_load("/Users/felixrehm/CLionProjects/Bildanalyse/Cube.jpeg", &width, &height, &channels, 0);
+    unsigned char* data = stbi_load("/Users/felixrehm/CLionProjects/Bildanalyse/Cube_3.jpg", &width, &height, &channels, 0);
     if(data == NULL) {
         printf("Error in loading the image\n");
         exit(1);
@@ -375,8 +431,8 @@ int main(void) {
     //erhöhe den Kontrast
     brighter_colors(data,img_size,channels);
     //make_mid_visible(width,height,data, img_size, channels);
-    unsigned char *ptr_upper_left = find_upper_left_rubic(data,img_size,channels,width,10,100,20);
-    unsigned char *ptr_lower_right = find_lower_right_rubic(data,img_size,channels,width,10,100,20);
+    unsigned char *ptr_upper_left = find_upper_left_rubic(data,img_size,channels,width,10,900,20);
+    unsigned char *ptr_lower_right = find_lower_right_rubic(data,img_size,channels,width,10,900,20);
     int new_height = calculate_new_height(ptr_upper_left,ptr_lower_right,width,channels);
     int new_width = calculate_new_width(ptr_upper_left,ptr_lower_right,width,new_height,channels);
     printf("img_size:%d\n",&img_size);
