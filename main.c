@@ -375,8 +375,9 @@ void analize_cube_panels(int new_width, int channels, int new_height, unsigned c
         int green_pxl_count = 0; // (0,255,0)
         int red_pxl_count = 0; // (255,0,0)
         int orange_pxl_count = 0; // (255,127,0)
+        // iterating over mulitple lines
         for (unsigned char *q = ptr_start; q <= ptr_start + (panel_height*new_width);q += new_width*channels) {
-            for (unsigned char *p = q; p < q + (panel_width*channels); p +=channels) {
+            for (unsigned char *p = q; p < q + (panel_width*channels); p +=channels) { // iterating trough one line
                 unsigned int pxl_decode = *p * factor_first_pxl_value + *(p+1)*factor_second_pxl_value + *(p+2);
                 switch (pxl_decode) {
                     case 255255255: // refers to white ->(255,255,255)
@@ -405,6 +406,8 @@ void analize_cube_panels(int new_width, int channels, int new_height, unsigned c
                 }
             }
         }
+        // setting start point for next panel
+
 
     }
 
