@@ -365,77 +365,92 @@ void analize_cube_panels(int new_width, int channels, int new_height, unsigned c
     //Pointer
     unsigned char *ptr_start = upper_right;
     // Char-array to transform orientation of colors into digital version
-    char cube_side[9];
+    char cube_side[9] = {0,0,0,0,0,0,0,0,0};
     // To move ptr_start
     int line_add = 0;
     int over_line_add = 0;
 
     for (int i = 0; i < 9; i++) {
         // Pixel counts
-        size_t color_count[6]; // [white,yellow,blue,green,red,orange]
-        int white_pxl_count = 0; // (255,255,255)
-        int yellow_pxl_count = 0; // (255,255,0)
-        int blue_pxl_count = 0; // (0,0,255),(0,255,255)
-        int green_pxl_count = 0; // (0,255,0)
-        int red_pxl_count = 0; // (255,0,0)
-        int orange_pxl_count = 0; // (255,127,0)
+        size_t color_count[6] = {0,0,0,0,0,0}; // [white,yellow,blue,green,red,orange]
+        // unknown pxl_count
+        int unknown_pxl_count = 0;
         // iterating over mulitple lines
-        for (unsigned char *q = ptr_start; q <= ptr_start + (panel_height*new_width);q += (10*new_width*channels)) {
-            for (unsigned char *p = q; p < q + (panel_width*channels); p +=(20*channels)) { // iterating trough one line
-                unsigned int pxl_decode = *p * factor_first_pxl_value + *(p+1)*factor_second_pxl_value + *(p+2);
+        //count layers
+        int layer_count = 0;
+        int line_count = 0;
+
+        for (unsigned char *q = ptr_start; q < ptr_start + (panel_height*new_width*channels);q += (new_width*channels)) {
+            layer_count++;
+            line_count = 0;
+            for (unsigned char *p = q; p < q + (panel_width*channels); p +=(channels)) { // iterating trough one line
+                line_count++;
+                unsigned char r = *(p);
+                unsigned char g = *(p + 1);
+                unsigned char b = *(p + 2);
+
+                unsigned int pxl_decode = (r << 16) | (g << 8) | b;;
                 switch (pxl_decode) {
-                    case 255255255: // refers to white ->(255,255,255)
-                        white_pxl_count++;
+                    case 0xFFFFFF: // refers to white ->(255,255,255)
+                        //printf("Pixel: (%d, %d, %d)\n", r, g, b);  // Ausgabe jedes Pixels
                         color_count[0]++;
                         break;
-                    case 255255000: //  refers to yellow -> (255,255,0)
-                        yellow_pxl_count++;
+                    case 0xFFFF00: //  refers to yellow -> (255,255,0)
                         color_count[1]++;
                         break;
-                    case 255: // refers to blue -> (0,0,255)
-                        blue_pxl_count++;
+                    case 0x0000FF: // refers to blue -> (0,0,255)
+                    case 0x00FFFF: // refers to blue -> (0,255,255)
                         color_count[2]++;
                         break;
-                    case 255255: // refers to blue -> (0,255,255)
-                        blue_pxl_count++;
-                        color_count[2]++;
-                        break;
-                    case 255000: // refers to green -> (0,255,0)
-                        green_pxl_count++;
+                    case 0x00FF00: // refers to green -> (0,255,0)
                         color_count[3]++;
                         break;
-                    case 255000000: //refers to red -> (255,0,0)
-                        red_pxl_count++;
+                    case 0xFF0000: //refers to red -> (255,0,0)
                         color_count[4]++;
                         break;
-                    case 255127000: //refers to oranger -> (255,127,0)
-                        orange_pxl_count++;
+                    case 0xFF7F00: //refers to oranger -> (255,127,0)
                         color_count[5]++;
                         break;
                     default:
+                        unknown_pxl_count++;
+                        //printf("Pixel: (%d, %d, %d)\n", r, g, b);  // Ausgabe jedes Pixels
                         break;
                 }
+
             }
         }
-        int temp = 0;
+        printf("Line_Count: %d\n",line_count);
+        printf("Layer_Count: %d\n",layer_count);
+        size_t temp = 0;
         char index = -1;
+        size_t checksum = 0;
         for (char j = 0; j< 6; j++) {
             printf("Color:%d, Count: %lu\n", j,color_count[j]);
+            checksum+=color_count[j];
             if (color_count[j] > temp) {
                 temp = color_count[j];
                 index = j;
             }
         }
+        printf("Unknown pxl_count: %d\n", unknown_pxl_count);
+        checksum+= unknown_pxl_count;
+        printf("Checksum: %lu, Should be: %d\n", checksum, line_count * layer_count);
         cube_side[i] = index;
         // setting start point for next panel
-        line_add += panel_width;
-        ptr_start += line_add;
+        //line_add += panel_width;
+        //ptr_start += line_add*channels;
+        ptr_start += panel_width * channels;
+        /*
         if ((i+1)%3 == 0) {
             ptr_start = upper_right;
             over_line_add +=(panel_width * new_width);
             ptr_start = ptr_start + over_line_add;
             line_add = 0;
 
+        }*/
+        if ((i+1) % 3 == 0) {
+            over_line_add += panel_height;
+            ptr_start = upper_right + (over_line_add * new_width * channels);
         }
         printf("Next Panel\n");
 
@@ -445,17 +460,12 @@ void analize_cube_panels(int new_width, int channels, int new_height, unsigned c
     for (int i = 0; i< 9; i++) {
         printf("Color of Panel: %d\n", cube_side[i]);
     }
-
-
-
-
-
 }
 
 int main(void) {
     printf("Hello, World!\n");
     int width, height, channels;
-    unsigned char* data = stbi_load("/Users/felixrehm/CLionProjects/Bildanalyse/Cube_3.jpg", &width, &height, &channels, 0);
+    unsigned char* data = stbi_load("/Users/felixrehm/CLionProjects/Bildanalyse/Cube.jpeg", &width, &height, &channels, 0);
     if(data == NULL) {
         printf("Error in loading the image\n");
         exit(1);
@@ -469,8 +479,8 @@ int main(void) {
     //erhöhe den Kontrast
     brighter_colors(data,img_size,channels);
     //make_mid_visible(width,height,data, img_size, channels);
-    unsigned char *ptr_upper_left = find_upper_left_rubic(data,img_size,channels,width,10,900,20);
-    unsigned char *ptr_lower_right = find_lower_right_rubic(data,img_size,channels,width,10,900,20);
+    unsigned char *ptr_upper_left = find_upper_left_rubic(data,img_size,channels,width,10,40,20);
+    unsigned char *ptr_lower_right = find_lower_right_rubic(data,img_size,channels,width,10,40,20);
     int new_height = calculate_new_height(ptr_upper_left,ptr_lower_right,width,channels);
     int new_width = calculate_new_width(ptr_upper_left,ptr_lower_right,width,new_height,channels);
     printf("img_size:%d\n",&img_size);
