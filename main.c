@@ -357,7 +357,7 @@ void crop_picture(int new_width, int new_height, int channels, unsigned char* pt
     free(ptr_cropped_pic);
     ptr_cropped_pic = NULL;
 }
-void analize_cube_panels(int new_width, int channels, int new_height, unsigned char *upper_right) {
+void analize_cube_panels(int new_width, int channels, int new_height, unsigned char *upper_right,int width) {
     int panel_width = new_width / 3;
     int panel_height = new_height /3;
     int factor_first_pxl_value = 1000000;
@@ -379,8 +379,8 @@ void analize_cube_panels(int new_width, int channels, int new_height, unsigned c
         //count layers
         int layer_count = 0;
         int line_count = 0;
-
-        for (unsigned char *q = ptr_start; q < ptr_start + (panel_height*new_width*channels);q += (new_width*channels)) {
+        //one iteration per line
+        for (unsigned char *q = ptr_start; q < ptr_start + (panel_height*width*channels);q += (width*channels)) {
             layer_count++;
             line_count = 0;
             for (unsigned char *p = q; p < q + (panel_width*channels); p +=(channels)) { // iterating trough one line
@@ -450,7 +450,7 @@ void analize_cube_panels(int new_width, int channels, int new_height, unsigned c
         }*/
         if ((i+1) % 3 == 0) {
             over_line_add += panel_height;
-            ptr_start = upper_right + (over_line_add * new_width * channels);
+            ptr_start = upper_right + (over_line_add * width * channels);
         }
         printf("Next Panel\n");
 
@@ -465,7 +465,7 @@ void analize_cube_panels(int new_width, int channels, int new_height, unsigned c
 int main(void) {
     printf("Hello, World!\n");
     int width, height, channels;
-    unsigned char* data = stbi_load("/Users/felixrehm/CLionProjects/Bildanalyse/Cube.jpeg", &width, &height, &channels, 0);
+    unsigned char* data = stbi_load("/Users/felixrehm/CLionProjects/Bildanalyse/Cube_3.jpg", &width, &height, &channels, 0);
     if(data == NULL) {
         printf("Error in loading the image\n");
         exit(1);
@@ -479,8 +479,8 @@ int main(void) {
     //erhöhe den Kontrast
     brighter_colors(data,img_size,channels);
     //make_mid_visible(width,height,data, img_size, channels);
-    unsigned char *ptr_upper_left = find_upper_left_rubic(data,img_size,channels,width,10,40,20);
-    unsigned char *ptr_lower_right = find_lower_right_rubic(data,img_size,channels,width,10,40,20);
+    unsigned char *ptr_upper_left = find_upper_left_rubic(data,img_size,channels,width,10,400,20);
+    unsigned char *ptr_lower_right = find_lower_right_rubic(data,img_size,channels,width,10,400,20);
     int new_height = calculate_new_height(ptr_upper_left,ptr_lower_right,width,channels);
     int new_width = calculate_new_width(ptr_upper_left,ptr_lower_right,width,new_height,channels);
     printf("img_size:%d\n",&img_size);
@@ -489,7 +489,7 @@ int main(void) {
     crop_picture(new_width,new_height,channels,ptr_upper_left,width);
     //stbi_write_jpg("/Users/felixrehm/CLionProjects/Bildanalyse/high_contrast.jpg", width,height,channels,data,100);
     //stbi_write_jpg("/Users/felixrehm/CLionProjects/Bildanalyse/high_contrast.jpg", new_width,new_height,channels,ptr_upper_left,100);
-    analize_cube_panels(new_width,channels,new_height,ptr_upper_left);
+    analize_cube_panels(new_width,channels,new_height,ptr_upper_left,width);
 
 
 
